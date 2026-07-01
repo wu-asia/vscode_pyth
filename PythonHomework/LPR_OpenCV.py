@@ -6,6 +6,7 @@ Author : wu-asia
 import os
 import cv2
 import numpy as np
+import pytesseract
 
 import tkinter as tk
 from tkinter import ttk
@@ -15,15 +16,29 @@ from tkinter import messagebox
 from PIL import Image
 from PIL import ImageTk
 
+# Windows高DPI兼容设置
+try:
+    from ctypes import windll
+    windll.shcore.SetProcessDpiAwareness(1)
+except Exception:
+    pass
+
+#Tesseract D盘路径配置（关键，按你的安装目录修改
+pytesseract.pytesseract.tesseract_cmd = r"D:\Program Files\Tesseract-OCR\tesseract.exe"
+# 车牌专用识别参数：仅识别数字+大写字母，开启方向校正
+OCR_CONFIG = r"--oem 3 --psm 1 -c tessedit_char_whitelist=0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ"
+
 
 class PlateRecognitionSystem:
-    
-    #车牌识别系统
+    # 车牌识别系统
     def __init__(self):
-
         self.root = tk.Tk()
         self.root.title("基于OpenCV车牌识别系统")
-        self.root.geometry("1200x700")
+        # 获取屏幕尺寸并居中显示
+        screen_w = self.root.winfo_screenwidth()
+        screen_h = self.root.winfo_screenheight()
+        win_w, win_h = 1000, 600
+        self.root.geometry(f"{win_w}x{win_h}+{(screen_w-win_w)//2}+{(screen_h-win_h)//2}")
 
         self.image = None
         self.gray = None
@@ -34,9 +49,8 @@ class PlateRecognitionSystem:
 
         self.create_widgets()
 
-    # GUI
+    # GUI界面搭建
     def create_widgets(self):
-
         self.left_frame = tk.Frame(self.root)
         self.left_frame.pack(side=tk.LEFT, padx=20, pady=20)
 
@@ -45,13 +59,12 @@ class PlateRecognitionSystem:
 
         self.canvas = tk.Label(
             self.left_frame,
-            width=700,
-            height=500,
+            width=640,
+            height=480,
             relief=tk.SUNKEN,
             bg="white"
         )
-
-        self.canvas.pack()
+        self.canvas.pack(fill=tk.BOTH, expand=True)
 
         tk.Button(
             self.right_frame,
@@ -69,6 +82,13 @@ class PlateRecognitionSystem:
 
         tk.Button(
             self.right_frame,
+            text="清空数据",
+            width=18,
+            command=self.clear
+        ).pack(pady=8)
+
+        tk.Button(
+            self.right_frame,
             text="退出系统",
             width=18,
             command=self.root.destroy
@@ -80,7 +100,6 @@ class PlateRecognitionSystem:
         ).pack(pady=15)
 
         self.result_var = tk.StringVar()
-
         tk.Entry(
             self.right_frame,
             width=28,
@@ -88,225 +107,174 @@ class PlateRecognitionSystem:
             state="readonly"
         ).pack()
 
-
-    # 图片读取
+    # 打开本地图片
     def open_image(self):
-        """
-        打开图片
-        """
-
         filename = filedialog.askopenfilename(
             filetypes=[
-                ("Image", "*.jpg"),
-                ("Image", "*.png"),
-                ("Image", "*.jpeg")
+                ("图片文件", "*.jpg *.png *.jpeg"),
+                ("全部文件", "*.*")
             ]
         )
-
         if filename == "":
             return
-
+        self.clear()
         self.image = cv2.imread(filename)
-
         self.show_image(self.image)
 
-    # 图片显示
+    # 在tkinter画布显示图片
     def show_image(self, image):
-        """
-        在GUI中显示图片
-        """
-
         if image is None:
             return
-
         rgb = cv2.cvtColor(image, cv2.COLOR_BGR2RGB)
-
         img = Image.fromarray(rgb)
-
         img.thumbnail((650, 500))
-
         photo = ImageTk.PhotoImage(img)
-
         self.canvas.configure(image=photo)
         self.canvas.image = photo
 
-    # 主流程
+    # 识别主流程入口
     def start_recognition(self):
-        """
-        开始识别
-        """
-
-        if self.image is None:
-
-            messagebox.showwarning(
-                "提示",
-                "请先打开图片！"
-            )
-
-            return
-
-        self.gray = self.gray_process(self.image)
-
-        self.binary = self.image_preprocess(self.gray)
-
-        self.plate = self.locate_plate(self.binary)
-
-        self.characters = self.segment_characters(self.plate)
-
-        self.result = self.recognize_characters(
-            self.characters
-        )
-
-        self.result_var.set(self.result)
+        try:
+            if self.image is None:
+                messagebox.showwarning("提示", "请先打开图片！")
+                return
+            self.gray = self.gray_process(self.image)
+            self.binary = self.image_preprocess(self.gray)
+            self.plate = self.locate_plate(self.binary)
+            if self.plate is None:
+                return
+            self.characters = self.segment_characters(self.plate)
+            self.result = self.recognize_characters(self.characters)
+            self.result_var.set(self.result)
+        except Exception as e:
+            messagebox.showerror("运行异常", f"识别失败：{str(e)}")
 
     # 图像灰度化
     def gray_process(self, image):
-        #图像灰度化
-        
+        gray = cv2.cvtColor(image, cv2.COLOR_BGR2GRAY)
+        return gray
 
-        pass
-
-    # 图像预处理
+    # 图像预处理：滤波、Sobel、二值化、形态学开闭运算
     def image_preprocess(self, gray):
-        """
-        图像预处理 包括：
-        1.高斯滤波 2. 中值滤波
-        3.Sobel   4. Canny
-        5.二值化   6. 开闭运算
-        """
-        # 高斯滤波
-        blur = cv2.GaussianBlur(
-            gray,
-            (5, 5),
-            0
-        )
-
-        # Sobel算子
-        # 提取水平边缘
-        sobel = cv2.Sobel(
-            blur,
-            cv2.CV_8U,
-            1,
-            0,
-            ksize=3
-        )
-
-        # 二值化
-        _, binary = cv2.threshold(
-
-            sobel,
-
-            0,
-
-            255,
-
-            cv2.THRESH_BINARY +
-            cv2.THRESH_OTSU
-
-        )
-
-        # 定义矩形结构元素
-        kernel = cv2.getStructuringElement(
-
-            cv2.MORPH_RECT,
-
-            (17, 5)
-
-        )
-
-        # 闭运算
-        # 填补车牌字符之间空隙
-        close = cv2.morphologyEx(
-
-            binary,
-
-            cv2.MORPH_CLOSE,
-
-            kernel
-
-        )
-
-        # 开运算
-        # 去除小噪点
-        kernel2 = cv2.getStructuringElement(
-
-            cv2.MORPH_RECT,
-
-            (3, 3)
-
-        )
-
-        opening = cv2.morphologyEx(
-
-            close,
-
-            cv2.MORPH_OPEN,
-
-            kernel2
-
-        )
-
+        # 高斯滤波降噪
+        blur = cv2.GaussianBlur(gray, (5, 5), 0)
+        # Sobel提取垂直边缘（车牌字符纵向特征）
+        sobel = cv2.Sobel(blur, cv2.CV_8U, 1, 0, ksize=3)
+        # OTSU自适应二值化
+        _, binary = cv2.threshold(sobel, 0, 255, cv2.THRESH_BINARY + cv2.THRESH_OTSU)
+        # 闭运算，连接字符间隙
+        kernel_close = cv2.getStructuringElement(cv2.MORPH_RECT, (17, 5))
+        close = cv2.morphologyEx(binary, cv2.MORPH_CLOSE, kernel_close)
+        # 开运算，去除细小噪点
+        kernel_open = cv2.getStructuringElement(cv2.MORPH_RECT, (3, 3))
+        opening = cv2.morphologyEx(close, cv2.MORPH_OPEN, kernel_open)
         return opening
 
-    # 车牌定位
+    # 轮廓筛选定位车牌区域
     def locate_plate(self, binary):
-        """
-        定位车牌区域可采用：轮廓检测、长宽比筛选、面积筛选
-        """
+        contours, _ = cv2.findContours(binary, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)[-2:]
+        plate = None
+        for contour in contours:
+            x, y, w, h = cv2.boundingRect(contour)
+            area = w * h
+            ratio = w / float(h)
+            # 面积、长宽比筛选国内蓝牌
+            if area < 2000:
+                continue
+            if ratio < 2.5 or ratio > 5.5:
+                continue
+            plate = self.image[y:y+h, x:x+w]
+            # 原图绘制车牌框
+            cv2.rectangle(self.image, (x, y), (x+w, y+h), (0, 255, 0), 2)
+            break
+        if plate is None:
+            messagebox.showwarning("提示", "未检测到车牌！")
+            return None
+        self.show_image(self.image)
+        return plate
 
-        pass
+    # OpenCV弹窗调试中间图
+    def show_cv_image(self, title, image):
+        if image is None:
+            return
+        cv2.imshow(title, image)
+        cv2.waitKey(0)
+        cv2.destroyAllWindows()
 
-    # 字符分割
+    # 车牌字符分割
     def segment_characters(self, plate):
-        """
-        字符切割 返回：list
-        """
+        if plate is None:
+            return []
+        gray = cv2.cvtColor(plate, cv2.COLOR_BGR2GRAY)
+        # 反二值化：字符变白，背景变黑
+        _, binary = cv2.threshold(gray, 0, 255, cv2.THRESH_BINARY_INV + cv2.THRESH_OTSU)
+        contours, _ = cv2.findContours(binary, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)[-2:]
+        char_regions = []
+        for contour in contours:
+            x, y, w, h = cv2.boundingRect(contour)
+            if w < 5 or h < 20:
+                continue
+            ratio = h / float(w)
+            if ratio < 1.0:
+                continue
+            char_regions.append((x, y, w, h))
+        # 按横向坐标从左到右排序字符
+        char_regions = sorted(char_regions, key=lambda item: item[0])
+        chars = []
+        for region in char_regions:
+            x, y, w, h = region
+            char_img = binary[y:y+h, x:x+w]
+            char_img = cv2.resize(char_img, (20, 40))
+            chars.append(char_img)
+        return chars
 
-        pass
-
-    # 字符识别
+    # 字符识别（Tesseract OCR实现，补齐原空函数）
     def recognize_characters(self, chars):
-        """
-        字符识别 可采用：模板匹配或KNN或SVM
-        """
+        if not chars:
+            return "无识别字符"
+        # 拼接全部字符图像为一整张
+        total_h = max(img.shape[0] for img in chars)
+        total_w = sum(img.shape[1] for img in chars)
+        concat_img = np.zeros((total_h, total_w), dtype=np.uint8)
+        offset = 0
+        for c_img in chars:
+            h, w = c_img.shape
+            concat_img[0:h, offset:offset+w] = c_img
+            offset += w
+        # OCR识别
+        text = pytesseract.image_to_string(concat_img, config=OCR_CONFIG)
+        # 清洗换行、空格
+        clean_text = text.strip().replace("\n", "").replace(" ", "")
+        return clean_text if clean_text else "识别失败"
 
-        pass
-
-    # 保存中间结果
+    # 保存处理后图片
     def save_image(self, image, filename):
-        """
-        保存图片
-        """
+        if image is None:
+            return
+        cv2.imwrite(filename, image)
 
-        pass
-
-    # 清空数据
-
+    # 重置所有缓存数据
     def clear(self):
-        """
-        清空数据
-        """
-
         self.image = None
         self.gray = None
         self.binary = None
         self.plate = None
         self.characters = []
         self.result = ""
-
         self.result_var.set("")
+        self.canvas.configure(image=None)
+        self.canvas.image = None
 
-    # 主循环
-
+    # GUI主循环
     def run(self):
         self.root.mainloop()
 
-# 主函数
-
+# 程序入口
 def main():
+    print("正在启动车牌识别系统...")
     app = PlateRecognitionSystem()
+    print("GUI创建完成，进入主循环...")
     app.run()
-
 
 if __name__ == "__main__":
     main()
