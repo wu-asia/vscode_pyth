@@ -25,9 +25,8 @@ except Exception:
 
 # Tesseract D盘路径配置（关键，按你的安装目录修改）
 pytesseract.pytesseract.tesseract_cmd = r"D:\Program Files\Tesseract-OCR\tesseract.exe"
-# 车牌专用识别参数：仅识别数字+大写字母，开启方向校正
-OCR_CONFIG = r"--oem 3 --psm 1 -c tessedit_char_whitelist=0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ"
-
+# 同时加载中文简体+英文数字，psm8单行文字识别适配车牌
+OCR_CONFIG = r"--oem 3 --psm 8 -l chi_sim+eng"
 
 class PlateRecognitionSystem:
     # 车牌识别系统
@@ -126,19 +125,47 @@ class PlateRecognitionSystem:
             return
         self.clear()
         self.image = cv2.imread(filename)
+
+        if self.image is None:
+            messagebox.showerror("错误", "图片读取失败！")
+            return
+
         self.show_image(self.image)
 
     # 在tkinter画布显示图片
     def show_image(self, image):
         if image is None:
             return
-        rgb = cv2.cvtColor(image, cv2.COLOR_BGR2RGB)
-        img = Image.fromarray(rgb)
-        img.thumbnail((650, 500))
-        photo = ImageTk.PhotoImage(img)
-        self.canvas.configure(image=photo)
-        self.canvas.image = photo
 
+        # OpenCV(BGR) -> RGB
+        rgb = cv2.cvtColor(image, cv2.COLOR_BGR2RGB)
+
+        img = Image.fromarray(rgb)
+
+        # 缩放图片
+        img.thumbnail((650, 500))
+
+        photo = ImageTk.PhotoImage(img)
+
+        # 清空Canvas
+        self.canvas.delete("all")
+
+        # 更新Canvas尺寸
+        self.canvas.update_idletasks()
+
+        canvas_w = self.canvas.winfo_width()
+        canvas_h = self.canvas.winfo_height()
+
+        # 图片居中显示
+        self.canvas.create_image(
+            canvas_w // 2,
+            canvas_h // 2,
+            image=photo,
+            anchor="center"
+        )
+
+        # 保存引用，防止图片被垃圾回收
+        self.canvas.image = photo
     # 识别主流程入口
     def start_recognition(self):
         try:
@@ -269,7 +296,8 @@ class PlateRecognitionSystem:
         self.characters = []
         self.result = ""
         self.result_var.set("")
-        self.canvas.configure(image=None)
+
+        self.canvas.delete("all")
         self.canvas.image = None
 
     # GUI主循环
