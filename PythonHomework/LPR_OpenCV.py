@@ -23,7 +23,7 @@ try:
 except Exception:
     pass
 
-#Tesseract D盘路径配置（关键，按你的安装目录修改
+# Tesseract D盘路径配置（关键，按你的安装目录修改）
 pytesseract.pytesseract.tesseract_cmd = r"D:\Program Files\Tesseract-OCR\tesseract.exe"
 # 车牌专用识别参数：仅识别数字+大写字母，开启方向校正
 OCR_CONFIG = r"--oem 3 --psm 1 -c tessedit_char_whitelist=0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ"
@@ -39,32 +39,40 @@ class PlateRecognitionSystem:
         screen_h = self.root.winfo_screenheight()
         win_w, win_h = 1000, 600
         self.root.geometry(f"{win_w}x{win_h}+{(screen_w-win_w)//2}+{(screen_h-win_h)//2}")
-
+        self.root.minsize(1000, 600)
+        
         self.image = None
         self.gray = None
         self.binary = None
         self.plate = None
         self.characters = []
         self.result = ""
+        try:
+            self.create_widgets()
+        except Exception as e:
+            print(e)
 
-        self.create_widgets()
-
-    # GUI界面搭建
+    # GUI界面搭建（类内方法，正确缩进）
     def create_widgets(self):
+        # 网格布局权重分配，左区域宽、右区域窄，不会互相挤压
+        self.root.columnconfigure(0, weight=3)
+        self.root.columnconfigure(1, weight=1)
+        self.root.rowconfigure(0, weight=1)
+
+        # 左侧画布区域，第0列
         self.left_frame = tk.Frame(self.root)
-        self.left_frame.pack(side=tk.LEFT, padx=20, pady=20)
+        self.left_frame.grid(row=0, column=0, padx=20, pady=20, sticky="nsew")
 
-        self.right_frame = tk.Frame(self.root)
-        self.right_frame.pack(side=tk.RIGHT, padx=20)
-
-        self.canvas = tk.Label(
+        self.canvas = tk.Canvas(
             self.left_frame,
-            width=640,
-            height=480,
-            relief=tk.SUNKEN,
-            bg="white"
+            bg="white",
+            relief=tk.SUNKEN
         )
         self.canvas.pack(fill=tk.BOTH, expand=True)
+
+        # 右侧按钮面板，第1列，垂直填充
+        self.right_frame = tk.Frame(self.root)
+        self.right_frame.grid(row=0, column=1, padx=20, pady=20, sticky="ns")
 
         tk.Button(
             self.right_frame,
@@ -98,7 +106,6 @@ class PlateRecognitionSystem:
             self.right_frame,
             text="识别结果："
         ).pack(pady=15)
-
         self.result_var = tk.StringVar()
         tk.Entry(
             self.right_frame,
@@ -107,7 +114,7 @@ class PlateRecognitionSystem:
             state="readonly"
         ).pack()
 
-    # 打开本地图片
+    # 打开本地图片（同级类方法，顶格缩进）
     def open_image(self):
         filename = filedialog.askopenfilename(
             filetypes=[
