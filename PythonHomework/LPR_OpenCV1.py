@@ -23,15 +23,10 @@ try:
 except Exception:
     pass
 
-# Tesseract D盘路径配置（关键，按你的安装目录修改）
+# Tesseract D盘路径配置（关键，chi_sim.traineddata放入tessdata文件夹）
 pytesseract.pytesseract.tesseract_cmd = r"D:\Program Files\Tesseract-OCR\tesseract.exe"
-# 同时加载中文简体+英文数字，psm8单行文字识别适配车牌
-# 对于中文的部分的识别的代码测试用例较少，识别的误差较大，对于
-OCR_CONFIG = (
-    r'--oem 3 '
-    r'--psm 7 '
-    r'-l chi_sim+eng '
-)
+# 加载简体中文+英文数字，单行文本模式适配车牌
+OCR_CONFIG = r"--oem 3 --psm 8 -l chi_sim+eng"
 
 class PlateRecognitionSystem:
     # 车牌识别系统
@@ -49,7 +44,6 @@ class PlateRecognitionSystem:
         self.gray = None
         self.binary = None
         self.plate = None
-        self.characters = []
         self.result = ""
         try:
             self.create_widgets()
@@ -171,22 +165,26 @@ class PlateRecognitionSystem:
 
         # 保存引用，防止图片被垃圾回收
         self.canvas.image = photo
-    # 识别主流程入口
+
+    # 识别主流程入口：新增蓝色通道提取，取消字符分割
     def start_recognition(self):
         try:
             if self.image is None:
                 messagebox.showwarning("提示", "请先打开图片！")
                 return
-            self.gray = self.gray_process(self.image)
-            self.binary = self.image_preprocess(self.gray)
+            # 蓝底车牌颜色提取，强化文字对比度
+            hsv = cv2.cvtColor(self.image, cv2.COLOR_BGR2HSV)
+            lower_blue = np.array([90, 80, 80])
+            upper_blue = np.array([130, 255, 255])
+            blue_mask = cv2.inRange(hsv, lower_blue, upper_blue)
+            blue_img = cv2.bitwise_and(self.image, self.image, mask=blue_mask)
 
-            self.plate = self.color_locate_plate(self.image)
-            if self.plate is None:
-                self.plate = self.locate_plate(self.binary)
-            
+            self.gray = self.gray_process(blue_img)
+            self.binary = self.image_preprocess(self.gray)
+            self.plate = self.locate_plate(self.binary)
             if self.plate is None:
                 return
-            # 不再分割字符，直接传入整张车牌识别
+            # 直接传入整张车牌识别，不再分割字符
             self.result = self.recognize_characters(self.plate)
             self.result_var.set(self.result)
         except Exception as e:
@@ -213,48 +211,6 @@ class PlateRecognitionSystem:
         opening = cv2.morphologyEx(close, cv2.MORPH_OPEN, kernel_open)
         return opening
 
-    def color_locate_plate(self, image):
-        hsv = cv2.cvtColor(image, cv2.COLOR_BGR2HSV)
-
-        # 蓝牌
-        lower_blue = np.array([100, 80, 80])
-        upper_blue = np.array([140, 255, 255])
-
-        # 黄牌
-        lower_yellow = np.array([10, 40, 60])
-        upper_yellow = np.array([45, 255, 255])
-
-        # 绿牌【拓宽区间适配新能源浅绿车牌】
-        lower_green = np.array([35, 30, 30])
-        upper_green = np.array([95, 255, 255])
-
-        mask_blue = cv2.inRange(hsv, lower_blue, upper_blue)
-        mask_yellow = cv2.inRange(hsv, lower_yellow, upper_yellow)
-        mask_green = cv2.inRange(hsv, lower_green, upper_green)
-
-        mask = cv2.bitwise_or(mask_blue, mask_yellow)
-        mask = cv2.bitwise_or(mask, mask_green)
-
-        kernel = cv2.getStructuringElement(cv2.MORPH_RECT, (9,9))
-        mask = cv2.morphologyEx(mask, cv2.MORPH_CLOSE, kernel)
-
-        contours,_ = cv2.findContours(mask,cv2.RETR_EXTERNAL,cv2.CHAIN_APPROX_SIMPLE)
-
-        for cnt in contours:
-            x,y,w,h = cv2.boundingRect(cnt)
-            area = w*h
-            ratio = w/float(h)
-            # 放宽阈值，兼容小尺寸、外籍车牌
-            if area < 1000:
-                continue
-            if ratio < 1.7 or ratio > 7.0:
-                continue
-            plate = image[y:y+h,x:x+w]
-            cv2.rectangle(image,(x,y),(x+w,y+h),(0,255,0),2)
-            self.show_image(self.image)
-            return plate
-        return None
-
     # 轮廓筛选定位车牌区域
     def locate_plate(self, binary):
         contours, _ = cv2.findContours(binary, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)[-2:]
@@ -263,12 +219,13 @@ class PlateRecognitionSystem:
             x, y, w, h = cv2.boundingRect(contour)
             area = w * h
             ratio = w / float(h)
-            # 统一放宽阈值
-            if area < 1000:
+            # 面积、长宽比筛选国内蓝牌
+            if area < 2000:
                 continue
-            if ratio < 1.7 or ratio > 7.0:
+            if ratio < 2.5 or ratio > 5.5:
                 continue
             plate = self.image[y:y+h, x:x+w]
+            # 原图绘制车牌框
             cv2.rectangle(self.image, (x, y), (x+w, y+h), (0, 255, 0), 2)
             break
         if plate is None:
@@ -285,12 +242,11 @@ class PlateRecognitionSystem:
         cv2.waitKey(0)
         cv2.destroyAllWindows()
 
-    # 车牌字符分割
+    # 【保留但不再调用】原逐字符分割函数（适配纯英文车牌，中文废弃）
     def segment_characters(self, plate):
         if plate is None:
             return []
         gray = cv2.cvtColor(plate, cv2.COLOR_BGR2GRAY)
-        # 反二值化：字符变白，背景变黑
         _, binary = cv2.threshold(gray, 0, 255, cv2.THRESH_BINARY_INV + cv2.THRESH_OTSU)
         contours, _ = cv2.findContours(binary, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)[-2:]
         char_regions = []
@@ -302,7 +258,6 @@ class PlateRecognitionSystem:
             if ratio < 1.0:
                 continue
             char_regions.append((x, y, w, h))
-        # 按横向坐标从左到右排序字符
         char_regions = sorted(char_regions, key=lambda item: item[0])
         chars = []
         for region in char_regions:
@@ -312,24 +267,18 @@ class PlateRecognitionSystem:
             chars.append(char_img)
         return chars
 
-    # 字符识别（Tesseract OCR实现，补齐原空函数）
+    # 重写识别函数：输入整张车牌，直接OCR识别中文省份
     def recognize_characters(self, plate):
         if plate is None:
             return "无识别字符"
-        # 3倍放大车牌，提升文字分辨率
-        plate_resize = cv2.resize(plate, None, fx=3, fy=3, interpolation=cv2.INTER_CUBIC)
-        gray = cv2.cvtColor(plate_resize, cv2.COLOR_BGR2GRAY)
-        # 直方图均衡化，消除反光明暗不均
-        gray = cv2.equalizeHist(gray)
-        # 反二值化：绿牌白底黑字、蓝牌黑底白字统一适配
+        gray = cv2.cvtColor(plate, cv2.COLOR_BGR2GRAY)
+        # 反二值化，白底黑字提升识别精度
         _, binary = cv2.threshold(gray, 0, 255, cv2.THRESH_BINARY_INV + cv2.THRESH_OTSU)
-        # 高斯平滑降噪，去除纹理噪点
-        blur = cv2.GaussianBlur(binary, (3, 3), 1)
-        # OCR识别整张图
-        text = pytesseract.image_to_string(blur, config=OCR_CONFIG)
+        text = pytesseract.image_to_string(binary, config=OCR_CONFIG)
         # 清理多余换行、空格
         clean_text = text.strip().replace("\n", "").replace(" ", "")
         return clean_text if clean_text else "识别失败"
+
     # 保存处理后图片
     def save_image(self, image, filename):
         if image is None:
@@ -342,10 +291,8 @@ class PlateRecognitionSystem:
         self.gray = None
         self.binary = None
         self.plate = None
-        self.characters = []
         self.result = ""
         self.result_var.set("")
-
         self.canvas.delete("all")
         self.canvas.image = None
 
@@ -359,7 +306,6 @@ def main():
     app = PlateRecognitionSystem()
     print("GUI创建完成，进入主循环...")
     app.run()
-
 
 if __name__ == "__main__":
     main()

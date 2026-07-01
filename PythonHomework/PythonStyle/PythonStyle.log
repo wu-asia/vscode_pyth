@@ -1,4 +1,4 @@
-This is XeTeX, Version 3.141592653-2.6-0.999998 (TeX Live 2026) (preloaded format=xelatex 2026.6.25)  30 JUN 2026 15:33
+This is XeTeX, Version 3.141592653-2.6-0.999998 (TeX Live 2026) (preloaded format=xelatex 2026.6.25)  1 JUL 2026 17:11
 entering extended mode
  restricted \write18 enabled.
  file:line:error style messages enabled.
@@ -583,23 +583,23 @@ Overfull \hbox (42.32196pt too wide) in paragraph at lines 394--394
  []
 
 [12] [13] [14] [15] [16] [17]
-Overfull \hbox (2.42996pt too wide) in paragraph at lines 603--614
+Overfull \hbox (2.42996pt too wide) in paragraph at lines 604--616
 []\TU/SimSun(0)/m/n/10.53937 针 对 静 态 车 牌 图 像 完 成 完 整 车 牌 识 别 流 程 开 发。|  借 助 \TU/lmr/m/n/10.53937 OpenCV \TU/SimSun(0)/m/n/10.53937 与 \TU/lmr/m/n/10.53937 numpy
  []
 
-[18] [19] (./PythonStyle.aux)
+[18] [19] [20] (./PythonStyle.aux)
  ***********
 LaTeX2e <2026-06-01>
 L3 programming layer <2022/07/14>
  ***********
  ) 
 Here is how much of TeX's memory you used:
- 8911 strings out of 467814
- 240713 string characters out of 5427169
+ 8935 strings out of 467814
+ 242307 string characters out of 5427169
  667535 words of memory out of 5000000
- 37862 multiletter control sequences out of 15000+600000
+ 37886 multiletter control sequences out of 15000+600000
  640613 words of font info for 82 fonts, out of 8000000 for 9000
  1348 hyphenation exceptions out of 8191
  93i,11n,111p,1254b,1097s stack positions out of 10000i,1000n,20000p,200000b,200000s
 
-Output written on PythonStyle.pdf (21 pages).
+Output written on PythonStyle.pdf (22 pages).

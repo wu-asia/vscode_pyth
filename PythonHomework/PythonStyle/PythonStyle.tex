@@ -596,21 +596,23 @@ if __name__ == "__main__":
 
     app.run()
 \end{verbatim}
+\subsection{实验中遇到的问题}
 
 \section{实验四}
 \subsection{1. 基于opencv车牌识别系统}
 \subsubsection{实验目的}
 针对静态车牌图像完成完整车牌识别流程开发。
-借助 OpenCV 与 numpy 完 成图像灰度化、滤波去噪、边缘检测、
-形态学运算、轮廓筛选等图像预处理操作， 
+借助 OpenCV 与 numpy 完 成图像灰度化、滤波去噪、边缘检测、形态学运算、轮廓筛选等图像预处理操作， 
 定位图片内车牌区域并完成字符分割；
 对分割后的字符进行特征匹配识别，
 输出 车牌完整号码；
 利用 tkinter 搭建简易可视化交互界面，
 实现图片导入、图像处 理、识别结果实时展示功能，
-搭建一套轻量化本地车牌图像识别工具，掌握数字 图像处理与目标字符识别基础流程。 
-实验数据： 各类含车牌静态图片，包含不同光照、拍摄角度的车辆车牌图像作为识别测试样本：
-https://tianchi.aliyun.com/dataset/203402。
+搭建一套轻量化本地车牌图像识别工具，
+掌握数字 图像处理与目标字符识别基础流程。 
+实验数据： 各类含车牌静态图片，
+包含不同光照、拍摄角度的车辆车牌图像作为识别
+测试样本：https://tianchi.aliyun.com/dataset/203402。
 
 \subsubsection{实验内容及要求}
 
@@ -633,5 +635,42 @@ https://tianchi.aliyun.com/dataset/203402。
 \begin{verbatim}
 
 \end{verbatim}
+
+\subsection{实验中遇到的问题}
+先前使用的代码：
+\begin{verbatim}
+    self.canvas = tk.Label(
+    self.left_frame,
+    width=640,
+    height=480,
+    relief=tk.SUNKEN,
+    bg="white"
+)
+\end{verbatim}
+
+修改之后的代码：
+\begin{verbatim}
+    self.canvas = tk.Canvas(
+    self.left_frame,
+    bg="white",
+    relief=tk.SUNKEN
+)
+self.canvas.pack(fill=tk.BOTH, expand=True)
+\end{verbatim}
+
+\subsubsection{代码造成的影响}
+会导致显示出来的页面空白
+\subsubsection{原因分析}
+\begin{enumerate}
+    \item 误解了 Label 控件的 width 和 height 参数含义
+在 Tkinter 中，Label 控件的 width 和 height 参数并不是以像素（Pixel）为单位，而是分别表示字符数和文本行数。
+    \item 布局管理器无法合理分配空间
+由于 Label 请求的显示区域过大，grid 布局管理器在计算窗口布局时无法合理分配空间，导致界面中的控件无法正常显示，最终表现为程序运行后窗口只有一片空白，而没有任何按钮和输入框。
+    \item width 和 height 的取值虽然不合理，但并不是非法参数，因此 Tkinter不会产生异常，也不会进入 try...except 语句进行错误提示，导致程序表面上运行正常，但界面显示异常。
+\end{enumerate}
+
+% \begin{verbatim}
+%     \item 
+% \end{verbatim}
 
 \end{document}

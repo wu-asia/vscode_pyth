@@ -6,6 +6,7 @@
 \contentsline {subsubsection}{\numberline {1.2.1}详细设计}{2}{}%
 \contentsline {paragraph}{源代码（带注释）}{2}{}%
 \contentsline {subsubsection}{\numberline {1.2.2}基于opencv车牌识别系统}{2}{}%
+\contentsline {subsection}{\numberline {1.3}实验中遇到的问题}{18}{}%
 \contentsline {section}{\numberline {2}实验四}{18}{}%
 \contentsline {subsection}{\numberline {2.1}1. 基于opencv车牌识别系统}{18}{}%
 \contentsline {subsubsection}{\numberline {2.1.1}实验目的}{18}{}%
@@ -13,3 +14,6 @@
 \contentsline {subsubsection}{\numberline {2.1.3}详细设计}{19}{}%
 \contentsline {paragraph}{源代码（带注释）}{19}{}%
 \contentsline {subsubsection}{\numberline {2.1.4}基于opencv车牌识别系统}{19}{}%
+\contentsline {subsection}{\numberline {2.2}实验中遇到的问题}{19}{}%
+\contentsline {subsubsection}{\numberline {2.2.1}代码造成的影响}{20}{}%
+\contentsline {subsubsection}{\numberline {2.2.2}原因分析}{20}{}%
