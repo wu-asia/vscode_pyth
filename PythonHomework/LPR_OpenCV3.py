@@ -1,6 +1,6 @@
 """
-实验四：基于OpenCV+百度AI云端API车牌识别系统
-双模式：优先云端AI识别，网络异常自动降级本地OpenCV+Tesseract
+实验四：基于OpenCV车牌识别系统
+
 Author : wu-asia
 """
 import os
@@ -25,7 +25,6 @@ try:
 except Exception:
     pass
 
-# ===================== 百度AI车牌识别API配置（自行替换密钥） =====================
 BAIDU_API_KEY = "9YSronlqcRAPBNQgZYwAt3ry"
 BAIDU_SECRET_KEY = "A7ETaTeRMsFsJJ1IsrW1rBPzUfRqXqcN"
 
@@ -47,7 +46,6 @@ OCR_FULL_CONFIG = (
 OCR_CHINESE = r'--oem 3 --psm 10 -l chi_sim'
 OCR_CHAR = r'--oem 3 --psm 10 -l eng'
 
-# ===================== 百度AI接口工具函数 =====================
 def get_baidu_token():
     """获取百度鉴权token，30天有效"""
     url = "https://aip.baidubce.com/oauth/2.0/token"
@@ -58,38 +56,65 @@ def get_baidu_token():
     }
     try:
         resp = requests.post(url, params=params, timeout=5)
-        return resp.json().get("access_token", "")
-    except Exception:
+        json_ret = resp.json()
+        print("[TOKEN日志] token获取完整返回：", json_ret)
+        return json_ret.get("access_token", "")
+    except Exception as e:
+        print("[TOKEN日志] 获取token异常：", str(e))
         return ""
 
 def ai_plate_recognize(cv_img):
-    """传入opencv图像，调用百度AI识别车牌，返回格式化结果"""
     token = get_baidu_token()
     if not token:
+        print("[AI识别] token为空，鉴权失败")
         return ""
-    # 图片转base64
-    _, buffer = cv2.imencode(".jpg", cv_img)
+
+    # 统一压缩图片尺寸，过大图片会导致接口识别失败
+    max_w = 1200
+    h, w = cv_img.shape[:2]
+    if w > max_w:
+        scale = max_w / w
+        cv_img = cv2.resize(cv_img, (int(w * scale), int(h * scale)))
+
+    # 编码jpg，质量90
+    encode_param = [int(cv2.IMWRITE_JPEG_QUALITY), 90]
+    _, buffer = cv2.imencode(".jpg", cv_img, encode_param)
     img_b64 = base64.b64encode(buffer).decode("utf-8")
-    # 请求接口
-    req_url = f"https://aip.baidubce.com/rest/2.0/ocr/v1/license_plate?access_token={token}"
-    post_data = {"image": img_b64, "multi_detect": "false"}
+
+    url = f"https://aip.baidubce.com/rest/2.0/ocr/v1/license_plate?access_token={token}"
+    data = {
+        "image": img_b64,
+        "multi_detect": "false",
+        "detect_direction": "true"
+    }
+    headers = {"Content-Type": "application/x-www-form-urlencoded"}
+
     try:
-        res = requests.post(req_url, data=post_data, timeout=8)
+        res = requests.post(url, data=data, headers=headers, timeout=10)
         json_data = res.json()
-        if "words_result" not in json_data or len(json_data["words_result"]) == 0:
+        print("[AI接口完整返回] ", json_data)
+
+        if "error_code" in json_data:
+            print("[AI识别报错] ", json_data)
             return ""
-        plate_info = json_data["words_result"][0]
-        num = plate_info["number"]
-        color = plate_info["color"]
-        return f"{num} ({color}牌)"
-    except Exception:
+        # 修复关键点：车牌识别接口words_result是字典，不是数组
+        if "words_result" not in json_data:
+            print("[AI识别] 接口未检测到车牌")
+            return ""
+
+        plate = json_data["words_result"]
+        num = plate["number"]
+        color = plate["color"]
+        return f"{num}"
+    except Exception as e:
+        print("[AI请求异常] ", str(e))
         return ""
 
 # ===================== GUI主程序类 =====================
 class PlateRecognitionSystem:
     def __init__(self):
         self.root = tk.Tk()
-        self.root.title("基于OpenCV+AI云端API车牌识别系统")
+        self.root.title("基于OpenCV车牌识别系统")
         screen_w = self.root.winfo_screenwidth()
         screen_h = self.root.winfo_screenheight()
         win_w, win_h = 1000, 600
@@ -162,7 +187,7 @@ class PlateRecognitionSystem:
             if self.image is None:
                 messagebox.showwarning("提示", "请先打开图片！")
                 return
-            # 第一步：优先调用百度AI云端识别
+
             ai_out = ai_plate_recognize(self.image)
             if ai_out:
                 self.result_var.set(f"{ai_out}")
@@ -175,7 +200,7 @@ class PlateRecognitionSystem:
             if self.plate is None:
                 self.plate = self.locate_plate(self.binary)
             if self.plate is None:
-                self.result_var.set("未检测到车牌")
+                self.result_var.set("本地识别：未检测到车牌")
                 return
 
             full_text = self.recognize_characters(self.plate)
@@ -272,7 +297,6 @@ class PlateRecognitionSystem:
                 cv2.rectangle(self.image, (x, y), (x+w, y+h), (0, 255, 0), 2)
                 break
         if plate is None:
-            messagebox.showwarning("提示", "未检测到车牌！")
             return None
         self.show_image(self.image)
         return plate
@@ -337,7 +361,7 @@ class PlateRecognitionSystem:
 
 # 程序入口
 def main():
-    print("正在启动 云端AI+本地双模式车牌识别系统...")
+    print("正在启动 车牌识别系统...")
     app = PlateRecognitionSystem()
     print("GUI加载完成，进入主循环")
     app.run()
