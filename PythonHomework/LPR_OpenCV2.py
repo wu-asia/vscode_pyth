@@ -1,5 +1,5 @@
 """
-实验四：基于 OpenCV 的车牌识别系统（答辩高分稳定版，按规范优化）
+实验四：基于 OpenCV 的车牌识别系统（答辩高分稳定版，新能源绿牌专项修复）
 Author : wu-asia
 """
 
@@ -26,12 +26,19 @@ except Exception:
 # Tesseract D盘路径配置（关键，按你的安装目录修改）
 pytesseract.pytesseract.tesseract_cmd = r"D:\Program Files\Tesseract-OCR\tesseract.exe"
 
-# 【修改点1：拆分OCR配置，消除白名单冲突】
+# 【修改点1：拆分OCR配置，新增带白名单的整牌识别，解决绿牌汉字/点丢失】
 # 整牌兜底识别配置（无白名单，psm7单行）
 OCR_FULL_CONFIG = (
     r'--oem 3 '
     r'--psm 7 '
     r'-l chi_sim+eng '
+)
+# 整牌专用带白名单（主力整图识别，适配省份汉字+分隔符·）
+OCR_FULL_WHITE_CONFIG = (
+    r'--oem 3 '
+    r'--psm 7 '
+    r'-l chi_sim+eng '
+    r'-c tessedit_char_whitelist=京沪津渝冀晋蒙辽吉黑苏浙皖闽赣鲁豫鄂湘粤桂琼川贵云藏陕甘青宁0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ·'
 )
 # 单汉字（省份简称）专用识别配置
 OCR_CHINESE = r'--oem 3 --psm 10 -l chi_sim'
@@ -177,7 +184,7 @@ class PlateRecognitionSystem:
         # 保存引用，防止图片被垃圾回收
         self.canvas.image = photo
 
-    # 识别主流程入口（修改点2：优先分割识别，候选列表重排）
+    # 识别主流程入口（修改点2：优先分割识别，候选列表重排+放宽长度校验）
     def start_recognition(self):
         try:
             if self.image is None:
@@ -194,7 +201,7 @@ class PlateRecognitionSystem:
                 self.result_var.set("未检测到车牌")
                 return
             
-            # 方案1：整张车牌识别兜底
+            # 方案1：整张车牌识别（带白名单主力）
             full_text = self.recognize_characters(self.plate)
             # 方案2：字符分割逐字识别，首位汉字单独识别提升精度
             char_imgs = self.segment_characters(self.plate)
@@ -211,18 +218,18 @@ class PlateRecognitionSystem:
                     text_buf.append(char_txt)
                 seg_text = "".join(text_buf)
             
-            # 【修改点2：优先分割结果，兜底整图识别】
+            # 优先分割结果，兜底整图识别
             candidate_list = []
             if seg_text:
                 candidate_list.append(seg_text)
             if full_text:
                 candidate_list.append(full_text)
 
-            # 筛选合法车牌（7/8位，适配普通蓝黄牌+新能源绿牌）
+            # 放宽合法长度：6~9位，兼容识别轻微残缺的新能源8位车牌
             self.result = "识别失败"
             for text in candidate_list:
                 clean = text.replace("·", "").strip()
-                if 7 <= len(clean) <= 8:
+                if 6 <= len(clean) <= 9:
                     self.result = text
                     break
             self.result_var.set(self.result)
@@ -261,7 +268,7 @@ class PlateRecognitionSystem:
         lower_yellow = np.array([10, 40, 60])
         upper_yellow = np.array([45, 255, 255])
 
-        # 【修改点3：收紧绿牌HSV阈值，减少树叶误检】
+        # 收紧绿牌HSV阈值，减少树叶误检
         lower_green = np.array([35, 50, 50])
         upper_green = np.array([90, 255, 255])
 
@@ -305,7 +312,7 @@ class PlateRecognitionSystem:
                 continue
             if ratio < 1.7 or ratio > 7.0:
                 continue
-            # 【加分修改：增加最小面积过滤，减少远距离小图误检】
+            # 增加最小面积过滤，减少远距离小图误检
             if area < 1500:
                 continue
             # 二次颜色校验过滤干扰矩形
@@ -331,7 +338,7 @@ class PlateRecognitionSystem:
         cv2.waitKey(0)
         cv2.destroyAllWindows()
 
-    # 车牌字符分割（修改点4：收紧字符尺寸，过滤竖线噪声）
+    # 车牌字符分割（修复：放宽尺寸适配新能源8位小字）
     def segment_characters(self, plate):
         if plate is None:
             return []
@@ -342,14 +349,14 @@ class PlateRecognitionSystem:
         char_regions = []
         for contour in contours:
             x, y, w, h = cv2.boundingRect(contour)
-            # 收紧最小尺寸，过滤微小噪点
-            if w < 6 or h < 20:
+            # 放宽最小尺寸，适配绿牌细小字符
+            if w < 4 or h < 16:
                 continue
             ratio = h / float(w)
             if ratio < 0.8:
                 continue
-            # 新增：过滤细长竖线噪声
-            if h / float(w) > 6:
+            # 放宽竖线过滤上限
+            if h / float(w) > 7:
                 continue
             char_regions.append((x, y, w, h))
         # 按横向坐标从左到右排序字符
@@ -362,7 +369,7 @@ class PlateRecognitionSystem:
             chars.append(char_img)
         return chars
 
-    # 字符识别（修改点5：增加字符纠错映射，混淆字符替换）
+    # 字符识别（修复：更换带白名单配置+优化二值参数）
     def recognize_characters(self, plate):
         if plate is None:
             return ""
@@ -372,9 +379,9 @@ class PlateRecognitionSystem:
         # 自适应均衡，消除反光、明暗不均
         clahe = cv2.createCLAHE(clipLimit=3.0, tileGridSize=(8,8))
         gray = clahe.apply(gray)
-        # 自适应二值化，替代固定OTSU，适配深浅底色车牌
+        # 优化自适应二值参数，适配绿底黑字
         binary = cv2.adaptiveThreshold(
-            gray, 255, cv2.ADAPTIVE_THRESH_GAUSSIAN_C, cv2.THRESH_BINARY_INV, 13, 3
+            gray, 255, cv2.ADAPTIVE_THRESH_GAUSSIAN_C, cv2.THRESH_BINARY_INV, 15, 2
         )
         # 形态学开运算分离粘连字符
         kernel_sep = cv2.getStructuringElement(cv2.MORPH_RECT, (2,6))
@@ -382,12 +389,12 @@ class PlateRecognitionSystem:
         # 高斯平滑降噪
         blur = cv2.GaussianBlur(binary, (3, 3), 1)
 
-        # OCR识别整张图，使用拆分后的无白名单配置
-        text = pytesseract.image_to_string(blur, config=OCR_FULL_CONFIG)
+        # 使用带车牌白名单的配置识别，解决汉字、分隔符丢失
+        text = pytesseract.image_to_string(blur, config=OCR_FULL_WHITE_CONFIG)
         # 清理多余换行、空格
         clean_text = text.strip().replace("\n", "").replace(" ", "")
 
-        # 【修改点5：字符混淆纠错映射】
+        # 字符混淆纠错映射
         fix_map = {
             "O": "0", "I": "1", "Z": "2",
             "S": "5", "B": "8"
