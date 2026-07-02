@@ -1,13 +1,5 @@
 """
 实验七：数据分析与可视化
-
-实验目的：
-（1）熟悉Python标准库csv的使用
-（2）熟悉CSV和TXT文件操作
-（3）熟练使用numpy、pandas、matplotlib
-（4）使用pandas进行数据分析
-（5）使用matplotlib进行数据可视化
-
 Author : wu-asia
 """
 
@@ -20,18 +12,13 @@ import pandas as pd
 import matplotlib.pyplot as plt
 
 
-# ==============================
-# Matplotlib 中文设置
-# ==============================
 
+# Matplotlib 中文设置
 plt.rcParams["font.sans-serif"] = ["SimHei"]
 plt.rcParams["axes.unicode_minus"] = False
 
 
-# ==============================
 # 生成营业数据
-# ==============================
-
 def generate_sales_data(filename):
     """
     生成2025年饭店营业额数据
@@ -90,10 +77,7 @@ def generate_sales_data(filename):
     print("CSV文件生成完成！")
 
 
-# ==============================
 # 读取数据
-# ==============================
-
 def load_data(filename):
     """
     使用pandas读取CSV文件
@@ -107,10 +91,7 @@ def load_data(filename):
     return df
 
 
-# ==============================
 # 删除缺失值
-# ==============================
-
 def remove_nan(df):
     """
     删除所有缺失值
@@ -129,9 +110,7 @@ def remove_nan(df):
     return df
 
 
-# ==============================
 # 每日营业额折线图
-# ==============================
 
 def draw_daily_line(df):
     """
@@ -166,10 +145,7 @@ def draw_daily_line(df):
 
     print("first.jpg 保存成功！")
 
-# ==============================
 # 每月营业额统计
-# ==============================
-
 def monthly_statistics(df):
     """
     按月份统计营业额
@@ -193,16 +169,11 @@ def monthly_statistics(df):
     return month_sales
 
 
-# ==============================
 # 每月营业额柱状图
-# ==============================
-
 def draw_month_bar(month_sales):
     """
     绘制每月营业额柱状图
-
-    保存：
-        second.jpg
+    保存：second.jpg
     """
 
     plt.figure(figsize=(10, 6))
@@ -230,9 +201,7 @@ def draw_month_bar(month_sales):
     print("second.jpg 保存成功！")
 
 
-# ==============================
 # 最大涨幅月份
-# ==============================
 
 def save_max_growth_month(month_sales):
     """
@@ -263,16 +232,11 @@ def save_max_growth_month(month_sales):
     print("maxMonth.txt 保存成功！")
 
 
-# ==============================
 # 季度统计
-# ==============================
-
 def quarter_statistics(df):
     """
     按季度统计营业额
-
-    返回：
-        quarter_sales
+    返回：quarter_sales
     """
 
     # 根据月份计算季度
@@ -287,16 +251,11 @@ def quarter_statistics(df):
     return quarter_sales
 
 
-# ==============================
 # 季度营业额饼图
-# ==============================
-
 def draw_quarter_pie(quarter_sales):
     """
     绘制季度营业额饼图
-
-    保存：
-        third.jpg
+    保存： third.jpg
     """
 
     plt.figure(figsize=(8, 8))
@@ -324,10 +283,7 @@ def draw_quarter_pie(quarter_sales):
     print("third.jpg 保存成功！")
 
 
-# ==============================
 # 主函数
-# ==============================
-
 def main():
 
     filename = "2025_restaurant_sales.csv"
@@ -359,15 +315,12 @@ def main():
     # 季度饼图
     draw_quarter_pie(quarter_sales)
 
-    print("\n==========================")
+    print("\n")
     print("实验完成！")
-    print("==========================")
+    print("\n")
 
 
-# ==============================
 # 程序入口
-# ==============================
-
 if __name__ == "__main__":
 
     main()
