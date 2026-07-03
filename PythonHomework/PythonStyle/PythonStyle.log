@@ -1,4 +1,4 @@
-This is XeTeX, Version 3.141592653-2.6-0.999998 (TeX Live 2026) (preloaded format=xelatex 2026.6.25)  1 JUL 2026 17:11
+This is XeTeX, Version 3.141592653-2.6-0.999998 (TeX Live 2026) (preloaded format=xelatex 2026.6.25)  2 JUL 2026 21:31
 entering extended mode
  restricted \write18 enabled.
  file:line:error style messages enabled.
@@ -439,24 +439,41 @@ LaTeX Info: Redefining \Relbar on input line 970.
 \mathdisplay@stack=\toks22
 LaTeX Info: Redefining \[ on input line 2965.
 LaTeX Info: Redefining \] on input line 2966.
-) (d:/texlive/2026/texmf-dist/tex/latex/titlesec/titlesec.sty
-Package: titlesec 2025/01/04 v2.17 Sectioning titles
-\ttl@box=\box58
-\beforetitleunit=\skip63
-\aftertitleunit=\skip64
-\ttl@plus=\dimen195
-\ttl@minus=\dimen196
-\ttl@toksa=\toks23
-\titlewidth=\dimen197
-\titlewidthlast=\dimen198
-\titlewidthfirst=\dimen199
 ) (d:/texlive/2026/texmf-dist/tex/latex/float/float.sty
 Package: float 2001/11/08 v1.3d Float enhancements (AL)
 \c@float@type=\count324
-\float@exts=\toks24
-\float@box=\box59
-\@float@everytoks=\toks25
-\@floatcapt=\box60
+\float@exts=\toks23
+\float@box=\box58
+\@float@everytoks=\toks24
+\@floatcapt=\box59
+) (d:/texlive/2026/texmf-dist/tex/latex/caption/caption.sty
+Package: caption 2023/08/05 v3.6o Customizing captions (AR)
+ (d:/texlive/2026/texmf-dist/tex/latex/caption/caption3.sty
+Package: caption3 2023/07/31 v2.4d caption3 kernel (AR)
+\caption@tempdima=\dimen195
+\captionmargin=\dimen196
+\caption@leftmargin=\dimen197
+\caption@rightmargin=\dimen198
+\caption@width=\dimen199
+\caption@indent=\dimen256
+\caption@parindent=\dimen257
+\caption@hangindent=\dimen258
+Package caption Info: Standard document class detected.
+)
+\c@caption@flags=\count325
+\c@continuedfloat=\count326
+Package caption Info: float package is loaded.
+) (d:/texlive/2026/texmf-dist/tex/latex/titlesec/titlesec.sty
+Package: titlesec 2025/01/04 v2.17 Sectioning titles
+\ttl@box=\box60
+\beforetitleunit=\skip63
+\aftertitleunit=\skip64
+\ttl@plus=\dimen259
+\ttl@minus=\dimen260
+\ttl@toksa=\toks25
+\titlewidth=\dimen261
+\titlewidthlast=\dimen262
+\titlewidthfirst=\dimen263
 ) (d:/texlive/2026/texmf-dist/tex/latex/tools/verbatim.sty
 Package: verbatim 2024-01-22 v1.5x LaTeX2e package for verbatim enhancements
 \every@verbatim=\toks26
@@ -465,11 +482,11 @@ Package: verbatim 2024-01-22 v1.5x LaTeX2e package for verbatim enhancements
 ) (d:/texlive/2026/texmf-dist/tex/latex/enumitem/enumitem.sty
 Package: enumitem 2025/02/06 v3.11 Customized lists
 \labelindent=\skip65
-\enit@outerparindent=\dimen256
+\enit@outerparindent=\dimen264
 \enit@toks=\toks28
 \enit@inbox=\box61
-\enit@count@id=\count325
-\enitdp@description=\count326
+\enit@count@id=\count327
+\enitdp@description=\count328
 ) (d:/texlive/2026/texmf-dist/tex/latex/fancyhdr/fancyhdr.sty
 Package: fancyhdr 2025/02/07 v5.2 Extensive control of page headers and footers
 \f@nch@headwidth=\skip66
@@ -490,22 +507,24 @@ Package: fancyhdr 2025/02/07 v5.2 Extensive control of page headers and footers
 ) (./PythonStyle.aux)
 \openout1 = `PythonStyle.aux'.
 
-LaTeX Font Info:    Checking defaults for OML/cmm/m/it on input line 19.
-LaTeX Font Info:    ... okay on input line 19.
-LaTeX Font Info:    Checking defaults for OMS/cmsy/m/n on input line 19.
-LaTeX Font Info:    ... okay on input line 19.
-LaTeX Font Info:    Checking defaults for OT1/cmr/m/n on input line 19.
-LaTeX Font Info:    ... okay on input line 19.
-LaTeX Font Info:    Checking defaults for T1/cmr/m/n on input line 19.
-LaTeX Font Info:    ... okay on input line 19.
-LaTeX Font Info:    Checking defaults for TS1/cmr/m/n on input line 19.
-LaTeX Font Info:    ... okay on input line 19.
-LaTeX Font Info:    Checking defaults for TU/lmr/m/n on input line 19.
-LaTeX Font Info:    ... okay on input line 19.
-LaTeX Font Info:    Checking defaults for OMX/cmex/m/n on input line 19.
-LaTeX Font Info:    ... okay on input line 19.
-LaTeX Font Info:    Checking defaults for U/cmr/m/n on input line 19.
-LaTeX Font Info:    ... okay on input line 19.
+LaTeX Font Info:    Checking defaults for OML/cmm/m/it on input line 20.
+LaTeX Font Info:    ... okay on input line 20.
+LaTeX Font Info:    Checking defaults for OMS/cmsy/m/n on input line 20.
+LaTeX Font Info:    ... okay on input line 20.
+LaTeX Font Info:    Checking defaults for OT1/cmr/m/n on input line 20.
+LaTeX Font Info:    ... okay on input line 20.
+LaTeX Font Info:    Checking defaults for T1/cmr/m/n on input line 20.
+LaTeX Font Info:    ... okay on input line 20.
+LaTeX Font Info:    Checking defaults for TS1/cmr/m/n on input line 20.
+LaTeX Font Info:    ... okay on input line 20.
+LaTeX Font Info:    Checking defaults for TU/lmr/m/n on input line 20.
+LaTeX Font Info:    ... okay on input line 20.
+LaTeX Font Info:    Checking defaults for OMX/cmex/m/n on input line 20.
+LaTeX Font Info:    ... okay on input line 20.
+LaTeX Font Info:    Checking defaults for U/cmr/m/n on input line 20.
+LaTeX Font Info:    ... okay on input line 20.
+Package caption Info: Begin \AtBeginDocument code.
+Package caption Info: End \AtBeginDocument code.
  [1
 
 ] (./PythonStyle.toc
@@ -536,6 +555,8 @@ LaTeX Font Info:    External font `lmex10' loaded for size
 \openout3 = `PythonStyle.toc'.
 
  [1] [1]
+File: image.png Graphic file (type bmp)
+<image.png>
 
 Package fontspec Info: 
 (fontspec)             Could not resolve font "FangSong/BI" (it probably
@@ -562,44 +583,52 @@ Package fontspec Info:
 (fontspec)             - 'normal' (m/n) with NFSS spec.:
 (fontspec)             <->"FangSong/OT:script=hani;language=dflt;"
 
- [2] [3] [4] [5] [6] [7] [8] [9] [10]
-Overfull \hbox (9.12294pt too wide) in paragraph at lines 354--354
-[]            \TU/lmtt/m/n/10.53937 messagebox.showerror(" \TU/FangSong(0)/m/n/10.53937 输 入 错 误 \TU/lmtt/m/n/10.53937 ", " \TU/FangSong(0)/m/n/10.53937 成 绩 必 须 是 数 字 ！ \TU/lmtt/m/n/10.53937 ")[] 
+ [2] [3]
+Overfull \hbox (14.6561pt too wide) in paragraph at lines 122--122
+[]        \TU/lmtt/m/n/10.53937 messagebox.showerror(" \TU/FangSong(0)/m/n/10.53937 输 入 错 误 \TU/lmtt/m/n/10.53937 ", " \TU/FangSong(0)/m/n/10.53937 成 绩 必 须 在 \TU/lmtt/m/n/10.53937 0~100 \TU/FangSong(0)/m/n/10.53937 之 间 ！ \TU/lmtt/m/n/10.53937 ")[] 
  []
 
 
-Overfull \hbox (36.78879pt too wide) in paragraph at lines 359--359
-[]            \TU/lmtt/m/n/10.53937 messagebox.showerror(" \TU/FangSong(0)/m/n/10.53937 输 入 错 误 \TU/lmtt/m/n/10.53937 ", " \TU/FangSong(0)/m/n/10.53937 成 绩 必 须 在 \TU/lmtt/m/n/10.53937 0~100 \TU/FangSong(0)/m/n/10.53937 之 间 ！ \TU/lmtt/m/n/10.53937 ")[] 
+Overfull \hbox (9.12294pt too wide) in paragraph at lines 128--128
+[]            \TU/lmtt/m/n/10.53937 messagebox.showerror(" \TU/FangSong(0)/m/n/10.53937 输 入 错 误 \TU/lmtt/m/n/10.53937 ", " \TU/FangSong(0)/m/n/10.53937 该 学 号 已 经 存 在 ！ \TU/lmtt/m/n/10.53937 ")[] 
  []
 
-
-Overfull \hbox (31.25563pt too wide) in paragraph at lines 365--365
-[]                \TU/lmtt/m/n/10.53937 messagebox.showerror(" \TU/FangSong(0)/m/n/10.53937 输 入 错 误 \TU/lmtt/m/n/10.53937 ", " \TU/FangSong(0)/m/n/10.53937 该 学 号 已 经 存 在 ！ \TU/lmtt/m/n/10.53937 ")[] 
- []
-
-[11]
-Overfull \hbox (42.32196pt too wide) in paragraph at lines 394--394
-[]            \TU/lmtt/m/n/10.53937 messagebox.showwarning(" \TU/FangSong(0)/m/n/10.53937 提 示 \TU/lmtt/m/n/10.53937 ", " \TU/FangSong(0)/m/n/10.53937 请 先 选 择 需 要 删 除 的 记 录 ！ \TU/lmtt/m/n/10.53937 ")[] 
- []
-
-[12] [13] [14] [15] [16] [17]
-Overfull \hbox (2.42996pt too wide) in paragraph at lines 604--616
+[4] [5] [6]
+Overfull \hbox (2.42996pt too wide) in paragraph at lines 220--232
 []\TU/SimSun(0)/m/n/10.53937 针 对 静 态 车 牌 图 像 完 成 完 整 车 牌 识 别 流 程 开 发。|  借 助 \TU/lmr/m/n/10.53937 OpenCV \TU/SimSun(0)/m/n/10.53937 与 \TU/lmr/m/n/10.53937 numpy
  []
 
-[18] [19] [20] (./PythonStyle.aux)
+[7] [8]
+Overfull \hbox (14.6561pt too wide) in paragraph at lines 282--282
+[]        \TU/lmtt/m/n/10.53937 messagebox.showerror(" \TU/FangSong(0)/m/n/10.53937 输 入 错 误 \TU/lmtt/m/n/10.53937 ", " \TU/FangSong(0)/m/n/10.53937 成 绩 必 须 在 \TU/lmtt/m/n/10.53937 0~100 \TU/FangSong(0)/m/n/10.53937 之 间 ！ \TU/lmtt/m/n/10.53937 ")[] 
+ []
+
+
+Overfull \hbox (9.12294pt too wide) in paragraph at lines 288--288
+[]            \TU/lmtt/m/n/10.53937 messagebox.showerror(" \TU/FangSong(0)/m/n/10.53937 输 入 错 误 \TU/lmtt/m/n/10.53937 ", " \TU/FangSong(0)/m/n/10.53937 该 学 号 已 经 存 在 ！ \TU/lmtt/m/n/10.53937 ")[] 
+ []
+
+[9] [10] [11] [12] [13]
+File: first.jpg Graphic file (type bmp)
+<first.jpg>
+ [14]
+File: second.jpg Graphic file (type bmp)
+<second.jpg>
+File: third.jpg Graphic file (type bmp)
+<third.jpg>
+ [15] [16] [17] [18] (./PythonStyle.aux)
  ***********
 LaTeX2e <2026-06-01>
 L3 programming layer <2022/07/14>
  ***********
  ) 
 Here is how much of TeX's memory you used:
- 8935 strings out of 467814
- 242307 string characters out of 5427169
- 667535 words of memory out of 5000000
- 37886 multiletter control sequences out of 15000+600000
- 640613 words of font info for 82 fonts, out of 8000000 for 9000
+ 10322 strings out of 467814
+ 268889 string characters out of 5427169
+ 690438 words of memory out of 5000000
+ 39257 multiletter control sequences out of 15000+600000
+ 640629 words of font info for 84 fonts, out of 8000000 for 9000
  1348 hyphenation exceptions out of 8191
- 93i,11n,111p,1254b,1097s stack positions out of 10000i,1000n,20000p,200000b,200000s
+ 93i,12n,111p,1254b,1097s stack positions out of 10000i,1000n,20000p,200000b,200000s
 
-Output written on PythonStyle.pdf (22 pages).
+Output written on PythonStyle.pdf (20 pages).

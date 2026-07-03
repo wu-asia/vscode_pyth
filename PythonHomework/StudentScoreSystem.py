@@ -9,6 +9,12 @@ from tkinter import messagebox
 import csv
 import os
 
+try:
+    from ctypes import windll
+    windll.shcore.SetProcessDpiAwareness(1)
+except Exception:
+    pass
+
 
 class StudentScoreSystem:
 
@@ -19,6 +25,7 @@ class StudentScoreSystem:
         self.root = tk.Tk()
         self.root.title("学生成绩录入与统计系统")
         self.root.geometry("800x600")
+        #禁止使用光标拉升界面
         self.root.resizable(False, False)
 
         # 数据列表
@@ -37,16 +44,10 @@ class StudentScoreSystem:
 
     def create_widgets(self):
 
-        # ------------------------------
         # 输入区域
-        # ------------------------------
-        input_frame = tk.LabelFrame(
-            self.root,
-            text="学生信息录入",
-            padx=10,
-            pady=10
-        )
-
+        #仅仅是创建出子窗口
+        input_frame = tk.LabelFrame(self.root, text="学生信息录入", padx=10, pady=10)
+        #让子窗口显示
         input_frame.pack(fill="x", padx=10, pady=10)
 
         # 学号
@@ -87,7 +88,7 @@ class StudentScoreSystem:
         self.entry_score.grid(row=0, column=5, padx=5)
 
         # 按钮区域
-
+        #在主窗口中创建一个空白的容器
         button_frame = tk.Frame(self.root)
 
         button_frame.pack(pady=10)
@@ -124,146 +125,59 @@ class StudentScoreSystem:
         # Treeview区域
 
         tree_frame = tk.Frame(self.root)
-
+        #both是完全填充，expand所有的可使用区域
         tree_frame.pack(fill="both", expand=True, padx=10)
 
-        columns = (
-            "id",
-            "name",
-            "score"
-        )
+        columns = ("id", "name", "score")
 
-        self.tree = ttk.Treeview(
-            tree_frame,
-            columns=columns,
-            show="headings",
-            height=15
-        )
+        self.tree = ttk.Treeview(tree_frame,columns=columns,show="headings",height=15)
 
-        self.tree.heading(
-            "id",
-            text="学号"
-        )
+        self.tree.heading("id",text="学号")
 
-        self.tree.heading(
-            "name",
-            text="姓名"
-        )
+        self.tree.heading("name",text="姓名")
 
-        self.tree.heading(
-            "score",
-            text="成绩"
-        )
+        self.tree.heading("score",text="成绩")
 
-        self.tree.column(
-            "id",
-            width=180,
-            anchor="center"
-        )
+        self.tree.column("id", width=180, anchor="center")
 
-        self.tree.column(
-            "name",
-            width=180,
-            anchor="center"
-        )
+        self.tree.column("name", width=180, anchor="center")
 
-        self.tree.column(
-            "score",
-            width=120,
-            anchor="center"
-        )
+        self.tree.column("score", width=120, anchor="center")
 
         # 滚动条
-        scrollbar = ttk.Scrollbar(
-            tree_frame,
-            orient="vertical",
-            command=self.tree.yview
-        )
+        scrollbar = ttk.Scrollbar(tree_frame, orient="vertical", command=self.tree.yview)
+        #控制右侧的进度条移动
+        self.tree.configure(yscrollcommand=scrollbar.set)
 
-        self.tree.configure(
-            yscrollcommand=scrollbar.set
-        )
+        self.tree.pack(side="left",fill="both",expand=True)
 
-        self.tree.pack(
-            side="left",
-            fill="both",
-            expand=True
-        )
-
-        scrollbar.pack(
-            side="right",
-            fill="y"
-        )
+        scrollbar.pack(side="right",fill="y")
 
         # 统计信息区域
 
-        stat_frame = tk.LabelFrame(
-            self.root,
-            text="统计信息"
-        )
+        stat_frame = tk.LabelFrame(self.root,text="统计信息")
 
-        stat_frame.pack(
-            fill="x",
-            padx=10,
-            pady=10
-        )
+        stat_frame.pack(fill="x",padx=10,pady=10)
 
-        self.label_avg = tk.Label(
-            stat_frame,
-            text="平均分：0"
-        )
+        self.label_avg = tk.Label(stat_frame,text="平均分：0")
 
-        self.label_avg.grid(
-            row=0,
-            column=0,
-            padx=20,
-            pady=5
-        )
+        self.label_avg.grid(row=0,column=0,padx=20,pady=5)
 
-        self.label_max = tk.Label(
-            stat_frame,
-            text="最高分：0"
-        )
+        self.label_max = tk.Label(stat_frame,text="最高分：0")
 
-        self.label_max.grid(
-            row=0,
-            column=1,
-            padx=20
-        )
+        self.label_max.grid(row=0,column=1,padx=20)
 
-        self.label_min = tk.Label(
-            stat_frame,
-            text="最低分：0"
-        )
+        self.label_min = tk.Label(stat_frame,text="最低分：0")
 
-        self.label_min.grid(
-            row=0,
-            column=2,
-            padx=20
-        )
+        self.label_min.grid(row=0,column=2,padx=20)
 
-        self.label_pass = tk.Label(
-            stat_frame,
-            text="及格人数：0"
-        )
+        self.label_pass = tk.Label(stat_frame,text="及格人数：0")
 
-        self.label_pass.grid(
-            row=1,
-            column=0,
-            padx=20,
-            pady=5
-        )
+        self.label_pass.grid(row=1,column=0,padx=20,pady=5)
 
-        self.label_fail = tk.Label(
-            stat_frame,
-            text="不及格人数：0"
-        )
+        self.label_fail = tk.Label(stat_frame,text="不及格人数：0")
 
-        self.label_fail.grid(
-            row=1,
-            column=1,
-            padx=20
-        )
+        self.label_fail.grid(row=1,column=1,padx=20)
 
 
     # 以下函数将在第二部分实现
@@ -276,7 +190,7 @@ class StudentScoreSystem:
         name = self.entry_name.get().strip()
         score = self.entry_score.get().strip()
 
-        # ---------- 输入合法性检查 ----------
+        #输入合法性检查
         if stu_id == "":
             messagebox.showerror("输入错误", "学号不能为空！")
             return
@@ -337,10 +251,7 @@ class StudentScoreSystem:
             return
 
         # 是否确认删除
-        result = messagebox.askyesno(
-            "确认删除",
-            "确定删除该条成绩记录吗？"
-        )
+        result = messagebox.askyesno("确认删除","确定删除该条成绩记录吗？")
 
         if not result:
             return
@@ -387,12 +298,7 @@ class StudentScoreSystem:
 
         try:
 
-            with open(
-                "students.csv",
-                "w",
-                newline="",
-                encoding="utf-8-sig"
-            ) as file:
+            with open("students.csv","w",newline="",encoding="utf-8-sig") as file:
 
                 writer = csv.writer(file)
 

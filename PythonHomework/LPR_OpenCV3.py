@@ -71,6 +71,7 @@ def ai_plate_recognize(cv_img):
 
     # 统一压缩图片尺寸，过大图片会导致接口识别失败
     max_w = 1200
+    #cv_img.shape是元组类型(高度, 宽度, 通道数)
     h, w = cv_img.shape[:2]
     if w > max_w:
         scale = max_w / w
@@ -79,6 +80,7 @@ def ai_plate_recognize(cv_img):
     # 编码jpg，质量90
     encode_param = [int(cv2.IMWRITE_JPEG_QUALITY), 90]
     _, buffer = cv2.imencode(".jpg", cv_img, encode_param)
+    #将原来的buffer的二进制转化为字节类型b''，在转换为字符串类型
     img_b64 = base64.b64encode(buffer).decode("utf-8")
 
     url = f"https://aip.baidubce.com/rest/2.0/ocr/v1/license_plate?access_token={token}"
@@ -92,14 +94,14 @@ def ai_plate_recognize(cv_img):
     try:
         res = requests.post(url, data=data, headers=headers, timeout=10)
         json_data = res.json()
-        print("[AI接口完整返回] ", json_data)
+        print("[完整返回] ", json_data)
 
         if "error_code" in json_data:
-            print("[AI识别报错] ", json_data)
+            print("[识别报错] ", json_data)
             return ""
         # 修复关键点：车牌识别接口words_result是字典，不是数组
         if "words_result" not in json_data:
-            print("[AI识别] 接口未检测到车牌")
+            print("[识别] 接口未检测到车牌")
             return ""
 
         plate = json_data["words_result"]
@@ -107,10 +109,10 @@ def ai_plate_recognize(cv_img):
         color = plate["color"]
         return f"{num}"
     except Exception as e:
-        print("[AI请求异常] ", str(e))
+        print("[请求异常] ", str(e))
         return ""
 
-# ===================== GUI主程序类 =====================
+#GUI主程序类
 class PlateRecognitionSystem:
     def __init__(self):
         self.root = tk.Tk()

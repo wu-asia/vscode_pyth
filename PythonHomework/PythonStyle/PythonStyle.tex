@@ -2,7 +2,8 @@
 \usepackage{graphicx} % Required for inserting images
 \usepackage{lmodern}
 \usepackage{amsmath}
-\usepackage{graphicx}
+\usepackage{float}      % 提供 [H] 选项
+\usepackage{caption}    % 标题格式（可选）
 \usepackage{titlesec}
 \usepackage{float}
 \usepackage{verbatim}
@@ -28,8 +29,8 @@
 
 \pagenumbering{arabic}  % 正文重新从 1 开始
 
-\section{实验一}
-\subsection{1. 基于tkinter的学生成绩录入与统计系统的设计与实现}
+\section{[题目1]实验一}
+\subsection{基于tkinter的学生成绩录入与统计系统的设计与实现}
 \subsubsection{实验目的}
 \begin{enumerate}
     \item 熟悉Python 标准库tkinter 创建GUI应用程序的方法和步骤。
@@ -58,547 +59,162 @@
 
 \subsubsection{详细设计}
 \paragraph{源代码（带注释）}
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=\textwidth]{image.png}
+    \caption{基于tkinter的学生成绩录入与统计系统的设计与实现}
+    \label{fig:image}
+\end{figure}
 \subsubsection{基于opencv车牌识别系统}
 代码：
 \begin{verbatim}
-"""
-基于 tkinter 的学生成绩录入与统计系统
-Author: wu-asia
-"""
-
-import tkinter as tk
-from tkinter import ttk
-from tkinter import messagebox
-import csv
-import os
-
-
 class StudentScoreSystem:
+"""
+主函数
+"""
+def __init__(self):
+    # 创建主窗口
+    self.root = tk.Tk()
+    self.root.title("学生成绩录入与统计系统")
+    self.root.geometry("800x600")
+    self.root.resizable(False, False)
+    # 学生信息列表
+    # 每个元素均为一个字典：
+    # {"id": 学号, "name": 姓名, "score": 成绩}
+    self.students = []
+    # 创建图形界面
+    self.create_widgets()
+    # 读取历史保存的数据
+    self.load_data()
+    # 将数据刷新到TreeView中显示
+    self.refresh_tree()
 
-    def __init__(self):
+# 添加学生信息
+def add_student(self):
 
-        # 创建主窗口
+    # 获取输入框中的内容，并去除首尾空格
+    stu_id = self.entry_id.get().strip()
+    name = self.entry_name.get().strip()
+    score = self.entry_score.get().strip()
 
-        self.root = tk.Tk()
-        self.root.title("学生成绩录入与统计系统")
-        self.root.geometry("800x600")
-        self.root.resizable(False, False)
-        # 数据列表
-        self.students = []
+    # ---------- 输入合法性检查 ----------
+    if stu_id == "":
+        messagebox.showerror("输入错误", "学号不能为空！")
+        return
 
-        # 创建界面
-        self.create_widgets()
+    if name == "":
+        messagebox.showerror("输入错误", "姓名不能为空！")
+        return
 
-        # 读取CSV数据（后续实现）
-        self.load_data()
+    if score == "":
+        messagebox.showerror("输入错误", "成绩不能为空！")
+        return
 
-        # 显示数据
-        self.refresh_tree()
+    # 判断成绩是否为数字
+    try:
+        score = float(score)
+    except ValueError:
+        messagebox.showerror("输入错误", "成绩必须是数字！")
+        return
 
-    # 创建界面
+    # 判断成绩是否在合法范围内
+    if score < 0 or score > 100:
+        messagebox.showerror("输入错误", "成绩必须在0~100之间！")
+        return
 
-    def create_widgets(self):
-        # 输入区域
-        input_frame = tk.LabelFrame(
-            self.root,
-            text="学生信息录入",
-            padx=10,
-            pady=10
-        )
-
-        input_frame.pack(fill="x", padx=10, pady=10)
-
-        # 学号
-        tk.Label(
-            input_frame,
-            text="学号："
-        ).grid(row=0, column=0, padx=5, pady=5)
-
-        self.entry_id = tk.Entry(
-            input_frame,
-            width=20
-        )
-        self.entry_id.grid(row=0, column=1, padx=5)
-
-        # 姓名
-        tk.Label(
-            input_frame,
-            text="姓名："
-        ).grid(row=0, column=2, padx=5)
-
-        self.entry_name = tk.Entry(
-            input_frame,
-            width=20
-        )
-        self.entry_name.grid(row=0, column=3, padx=5)
-
-        # 成绩
-        tk.Label(
-            input_frame,
-            text="成绩："
-        ).grid(row=0, column=4, padx=5)
-
-        self.entry_score = tk.Entry(
-            input_frame,
-            width=20
-        )
-
-        self.entry_score.grid(row=0, column=5, padx=5)
-
-        # 按钮区域
-        button_frame = tk.Frame(self.root)
-
-        button_frame.pack(pady=10)
-
-        tk.Button(
-            button_frame,
-            text="添加",
-            width=12,
-            command=self.add_student
-        ).grid(row=0, column=0, padx=10)
-
-        tk.Button(
-            button_frame,
-            text="删除",
-            width=12,
-            command=self.delete_student
-        ).grid(row=0, column=1, padx=10)
-
-        tk.Button(
-            button_frame,
-            text="保存",
-            width=12,
-            command=self.save_data
-        ).grid(row=0, column=2, padx=10)
-
-        tk.Button(
-            button_frame,
-            text="统计",
-            width=12,
-            command=self.statistics
-        ).grid(row=0, column=3, padx=10)
-
-
-        # Treeview区域
-
-        tree_frame = tk.Frame(self.root)
-
-        tree_frame.pack(fill="both", expand=True, padx=10)
-
-        columns = (
-            "id",
-            "name",
-            "score"
-        )
-
-        self.tree = ttk.Treeview(
-            tree_frame,
-            columns=columns,
-            show="headings",
-            height=15
-        )
-
-        self.tree.heading(
-            "id",
-            text="学号"
-        )
-
-        self.tree.heading(
-            "name",
-            text="姓名"
-        )
-
-        self.tree.heading(
-            "score",
-            text="成绩"
-        )
-
-        self.tree.column(
-            "id",
-            width=180,
-            anchor="center"
-        )
-
-        self.tree.column(
-            "name",
-            width=180,
-            anchor="center"
-        )
-
-        self.tree.column(
-            "score",
-            width=120,
-            anchor="center"
-        )
-
-        # 滚动条
-        scrollbar = ttk.Scrollbar(
-            tree_frame,
-            orient="vertical",
-            command=self.tree.yview
-        )
-
-        self.tree.configure(
-            yscrollcommand=scrollbar.set
-        )
-
-        self.tree.pack(
-            side="left",
-            fill="both",
-            expand=True
-        )
-
-        scrollbar.pack(
-            side="right",
-            fill="y"
-        )
-
-        # 统计信息区域
-
-        stat_frame = tk.LabelFrame(
-            self.root,
-            text="统计信息"
-        )
-
-        stat_frame.pack(
-            fill="x",
-            padx=10,
-            pady=10
-        )
-
-        self.label_avg = tk.Label(
-            stat_frame,
-            text="平均分：0"
-        )
-
-        self.label_avg.grid(
-            row=0,
-            column=0,
-            padx=20,
-            pady=5
-        )
-
-        self.label_max = tk.Label(
-            stat_frame,
-            text="最高分：0"
-        )
-
-        self.label_max.grid(
-            row=0,
-            column=1,
-            padx=20
-        )
-
-        self.label_min = tk.Label(
-            stat_frame,
-            text="最低分：0"
-        )
-
-        self.label_min.grid(
-            row=0,
-            column=2,
-            padx=20
-        )
-
-        self.label_pass = tk.Label(
-            stat_frame,
-            text="及格人数：0"
-        )
-
-        self.label_pass.grid(
-            row=1,
-            column=0,
-            padx=20,
-            pady=5
-        )
-
-        self.label_fail = tk.Label(
-            stat_frame,
-            text="不及格人数：0"
-        )
-
-        self.label_fail.grid(
-            row=1,
-            column=1,
-            padx=20
-        )
-
-
-    # 以下函数将在第二部分实现
-
-    # 增加学生
-    def add_student(self):
-
-        # 获取输入内容
-        stu_id = self.entry_id.get().strip()
-        name = self.entry_name.get().strip()
-        score = self.entry_score.get().strip()
-
-        #输入合法性检查
-        if stu_id == "":
-            messagebox.showerror("输入错误", "学号不能为空！")
+    # 判断学号是否重复
+    for stu in self.students:
+        if stu["id"] == stu_id:
+            messagebox.showerror("输入错误", "该学号已经存在！")
             return
 
-        if name == "":
-            messagebox.showerror("输入错误", "姓名不能为空！")
-            return
+    # ---------- 添加数据 ----------
+    self.students.append(
+        {
+            "id": stu_id,
+            "name": name,
+            "score": score
+        }
+    )
 
-        if score == "":
-            messagebox.showerror("输入错误", "成绩不能为空！")
-            return
+    # 更新TreeView显示
+    self.refresh_tree()
 
-        # 成绩必须是数字
-        try:
-            score = float(score)
-        except ValueError:
-            messagebox.showerror("输入错误", "成绩必须是数字！")
-            return
+    # 清空输入框，方便继续录入
+    self.entry_id.delete(0, tk.END)
+    self.entry_name.delete(0, tk.END)
+    self.entry_score.delete(0, tk.END)
 
-        # 成绩范围检查
-        if score < 0 or score > 100:
-            messagebox.showerror("输入错误", "成绩必须在0~100之间！")
-            return
+    messagebox.showinfo("成功", "学生成绩添加成功！")
 
-        # 学号不能重复
-        for stu in self.students:
-            if stu["id"] == stu_id:
-                messagebox.showerror("输入错误", "该学号已经存在！")
-                return
+# 刷新TreeView中的数据
+def refresh_tree(self):
 
-        # 添加数据
-        self.students.append(
-            {
-                "id": stu_id,
-                "name": name,
-                "score": score
-            }
-        )
+    # 删除TreeView中已有数据
+    for item in self.tree.get_children():
+        self.tree.delete(item)
 
-        # 刷新表格
-        self.refresh_tree()
+    # 将学生列表重新插入TreeView
+    for stu in self.students:
 
-        # 清空输入框
-        self.entry_id.delete(0, tk.END)
-        self.entry_name.delete(0, tk.END)
-        self.entry_score.delete(0, tk.END)
-
-        messagebox.showinfo("成功", "学生成绩添加成功！")
-
-    #删除学生
-    def delete_student(self):
-
-        # 获取当前选中的记录
-        selected = self.tree.selection()
-
-        if not selected:
-            messagebox.showwarning("提示", "请先选择需要删除的记录！")
-            return
-
-        # 是否确认删除
-        result = messagebox.askyesno(
-            "确认删除",
-            "确定删除该条成绩记录吗？"
-        )
-
-        if not result:
-            return
-
-        # 获取学号
-        item = self.tree.item(selected[0])
-
-        values = item["values"]
-
-        stu_id = str(values[0])
-
-        # 删除列表中的数据
-        for stu in self.students:
-            if stu["id"] == stu_id:
-                self.students.remove(stu)
-                break
-
-        # 刷新表格
-        self.refresh_tree()
-
-        messagebox.showinfo("成功", "删除成功！")
-    
-    #刷新TreeView
-    def refresh_tree(self):
-
-        # 删除Treeview中所有数据
-        for item in self.tree.get_children():
-            self.tree.delete(item)
-
-        # 重新插入全部数据
-        for stu in self.students:
-
-            self.tree.insert(
-                "",
-                tk.END,
-                values=(
-                    stu["id"],
-                    stu["name"],
-                    stu["score"]
-                )
-            )
-
-    def save_data(self):
-
-        try:
-
-            with open(
-                "students.csv",
-                "w",
-                newline="",
-                encoding="utf-8-sig"
-            ) as file:
-
-                writer = csv.writer(file)
-
-                # 写入表头
-                writer.writerow(
-                    ["学号", "姓名", "成绩"]
-                )
-
-                # 写入数据
-                for stu in self.students:
-
-                    writer.writerow(
-                        [
-                            stu["id"],
-                            stu["name"],
-                            stu["score"]
-                        ]
-                    )
-
-            messagebox.showinfo(
-                "保存成功",
-                "成绩数据已保存到 students.csv"
-            )
-
-        except Exception as e:
-
-            messagebox.showerror(
-                "保存失败",
-                str(e)
-            )
-
-    def load_data(self):
-
-        # 文件不存在直接返回
-        if not os.path.exists("students.csv"):
-            return
-
-        try:
-
-            with open(
-                "students.csv",
-                "r",
-                newline="",
-                encoding="utf-8-sig"
-            ) as file:
-
-                reader = csv.reader(file)
-
-                # 跳过标题行
-                next(reader, None)
-
-                self.students.clear()
-
-                for row in reader:
-
-                    if len(row) != 3:
-                        continue
-
-                    self.students.append(
-                        {
-                            "id": row[0],
-                            "name": row[1],
-                            "score": float(row[2])
-                        }
-                    )
-
-        except Exception as e:
-
-            messagebox.showerror(
-                "读取失败",
-                str(e)
-            )
-
-    def statistics(self):
-
-        if len(self.students) == 0:
-
-            messagebox.showwarning(
-                "提示",
-                "暂无学生成绩数据！"
-            )
-
-            return
-
-        scores = []
-
-        for stu in self.students:
-
-            scores.append(
+        self.tree.insert(
+            "",
+            tk.END,
+            values=(
+                stu["id"],
+                stu["name"],
                 stu["score"]
             )
-
-        average = sum(scores) / len(scores)
-
-        maximum = max(scores)
-
-        minimum = min(scores)
-
-        pass_num = 0
-
-        fail_num = 0
-
-        for score in scores:
-
-            if score >= 60:
-                pass_num += 1
-            else:
-                fail_num += 1
-
-        self.label_avg.config(
-            text=f"平均分：{average:.2f}"
         )
+# 保存学生成绩到CSV文件
+def save_data(self):
 
-        self.label_max.config(
-            text=f"最高分：{maximum:.2f}"
-        )
+    try:
 
-        self.label_min.config(
-            text=f"最低分：{minimum:.2f}"
-        )
+        # 以写入方式打开CSV文件
+        with open(
+            "students.csv",
+            "w",
+            newline="",
+            encoding="utf-8-sig"
+        ) as file:
 
-        self.label_pass.config(
-            text=f"及格人数：{pass_num}"
-        )
+            writer = csv.writer(file)
 
-        self.label_fail.config(
-            text=f"不及格人数：{fail_num}"
-        )
+            # 写入表头
+            writer.writerow(
+                ["学号", "姓名", "成绩"]
+            )
+
+            # 将学生数据逐行写入CSV文件
+            for stu in self.students:
+
+                writer.writerow(
+                    [
+                        stu["id"],
+                        stu["name"],
+                        stu["score"]
+                    ]
+                )
 
         messagebox.showinfo(
-            "统计完成",
-            "成绩统计已更新！"
+            "保存成功",
+            "成绩数据已保存到 students.csv"
         )
 
-    # 启动程序
-    def run(self):
-        self.root.mainloop()
+    except Exception as e:
 
-# 主函数
-if __name__ == "__main__":
-
-    app = StudentScoreSystem()
-
-    app.run()
+        # 保存失败时提示异常信息
+        messagebox.showerror(
+            "保存失败",
+            str(e)
+        )
 \end{verbatim}
-\subsection{实验中遇到的问题}
 
-\section{实验四}
+\subsection{小结}
+本实验基于 OpenCV、Tkinter 和 pytesseract 实现了车牌识别系统，完成了图像读取、灰度化、图像预处理、车牌定位、字符识别以及结果显示等功能。通过实践掌握了数字图像处理的基本流程，加深了对图像分割、边缘检测、形态学处理及 OCR 技术的理解，同时提高了 Python 综合开发和调试能力。
+
+\section{[题目2]实验四}
 \subsection{1. 基于opencv车牌识别系统}
 \subsubsection{实验目的}
 针对静态车牌图像完成完整车牌识别流程开发。
@@ -633,7 +249,130 @@ if __name__ == "__main__":
 \subsubsection{基于opencv车牌识别系统}
 代码：
 \begin{verbatim}
+# 增加学生
+def add_student(self):
 
+    # 获取输入内容
+    stu_id = self.entry_id.get().strip()
+    name = self.entry_name.get().strip()
+    score = self.entry_score.get().strip()
+
+    # 输入合法性检查
+    if stu_id == "":
+        messagebox.showerror("输入错误", "学号不能为空！")
+        return
+
+    if name == "":
+        messagebox.showerror("输入错误", "姓名不能为空！")
+        return
+
+    if score == "":
+        messagebox.showerror("输入错误", "成绩不能为空！")
+        return
+
+    # 成绩必须是数字
+    try:
+        score = float(score)
+    except ValueError:
+        messagebox.showerror("输入错误", "成绩必须是数字！")
+        return
+
+    # 成绩范围检查
+    if score < 0 or score > 100:
+        messagebox.showerror("输入错误", "成绩必须在0~100之间！")
+        return
+
+    # 学号不能重复
+    for stu in self.students:
+        if stu["id"] == stu_id:
+            messagebox.showerror("输入错误", "该学号已经存在！")
+            return
+
+    # 添加学生信息
+    self.students.append(
+        {
+            "id": stu_id,
+            "name": name,
+            "score": score
+        }
+    )
+
+    # 刷新表格显示
+    self.refresh_tree()
+
+# 刷新TreeView中的数据
+def refresh_tree(self):
+
+    # 删除TreeView中的所有数据
+    for item in self.tree.get_children():
+        self.tree.delete(item)
+
+    # 将学生列表重新显示到TreeView中
+    for stu in self.students:
+
+        self.tree.insert(
+            "",
+            tk.END,
+            values=(
+                stu["id"],
+                stu["name"],
+                stu["score"]
+            )
+        )
+
+# 统计学生成绩信息
+def statistics(self):
+
+    # 判断是否存在学生数据
+    if len(self.students) == 0:
+        messagebox.showwarning(
+            "提示",
+            "暂无学生成绩数据！"
+        )
+        return
+
+    # 提取所有成绩
+    scores = []
+
+    for stu in self.students:
+        scores.append(stu["score"])
+
+    # 计算平均分、最高分和最低分
+    average = sum(scores) / len(scores)
+    maximum = max(scores)
+    minimum = min(scores)
+
+    # 统计及格人数和不及格人数
+    pass_num = 0
+    fail_num = 0
+
+    for score in scores:
+
+        if score >= 60:
+            pass_num += 1
+        else:
+            fail_num += 1
+
+    # 更新统计信息显示
+    self.label_avg.config(
+        text=f"平均分：{average:.2f}"
+    )
+
+    self.label_max.config(
+        text=f"最高分：{maximum:.2f}"
+    )
+
+    self.label_min.config(
+        text=f"最低分：{minimum:.2f}"
+    )
+
+    self.label_pass.config(
+        text=f"及格人数：{pass_num}"
+    )
+
+    self.label_fail.config(
+        text=f"不及格人数：{fail_num}"
+    )
 \end{verbatim}
 
 \subsection{实验中遇到的问题}
@@ -669,8 +408,128 @@ self.canvas.pack(fill=tk.BOTH, expand=True)
     \item width 和 height 的取值虽然不合理，但并不是非法参数，因此 Tkinter不会产生异常，也不会进入 try...except 语句进行错误提示，导致程序表面上运行正常，但界面显示异常。
 \end{enumerate}
 
-% \begin{verbatim}
-%     \item 
-% \end{verbatim}
+\subsection{小结}
+本实验利用 Tkinter 开发了学生成绩管理系统，实现了学生信息录入、删除、成绩统计以及 CSV 文件的保存与读取等功能。通过本实验熟悉了 Python 图形界面程序设计方法，掌握了事件驱动机制、数据管理及文件操作，进一步提高了综合运用 Python 完成小型管理系统开发的能力。
 
+\section{[题目3]实验七}
+\subsection{数据分析与可视化}
+\subsubsection{实验目的}
+\begin{enumerate}
+    \item 熟悉 Python 标准库 csv 的用法。
+    \item 熟悉 CSV 和 TXT 文件操作。
+    \item 熟练安装扩展库 numpy、pandas、matplotlib。 
+    \item 熟悉使用扩展库 pandas 进行数据分析的基本操作。 
+    \item 熟悉使用扩展库 matplotlib 进行数据可视化的基本操作。
+\end{enumerate}
+
+\subsubsection{数据描述}
+ 利用 Python 模拟生成 2025 年某个饭店营业额的表格数据文件$$2025\_restaurant\_sales.csv$$，该饭店一年中有 300 天营业，
+ 营业时间不固定， 每日销售额在500到1500之间，并随机选择10\%
+ 比例的销售额设置为$$NaN$$。
+\subsection{实验内容及要求}
+\begin{enumerate}
+    \item 使用tkinter 设计图形化界面，界面布局清晰，操作按钮完整。
+    \item 每条成绩记录至少包含学号、姓名和成绩三个字段。
+    \item 实现成绩信息的添加、删除、显示、保存和读取功能。
+    \item 使用CSV文件保存成绩数据，程序关闭后再次运行时能够读取已有数据。
+    \item 实现成绩统计功能，包括平均分、最高分、最低分、及格人数和不及格 人数。
+    \item 进行必要的输入合法性检查，例如学号和姓名不能为空，成绩必须为0 到100之间的数字。
+    \item 代码结构清晰，主要功能应封装为函数或类，并添加必要注释。
+    \item 运行结果中应展示正常输入、错误输入、数据保存、数据读取和统计结 果等测试情况。
+    
+\end{enumerate}
+
+\subsubsection{详细设计}
+
+\paragraph{源代码（带注释）}
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=\textwidth]{first.jpg}
+    \caption{折线图}
+    \label{fig:first}
+\end{figure}
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=\textwidth]{second.jpg}
+    \caption{柱状图}
+    \label{fig:second}
+\end{figure}
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=\textwidth]{third.jpg}
+    \caption{饼状图}
+    \label{fig:thrid}
+\end{figure}
+
+\subsubsection{数据分析与可视化}
+代码：
+\begin{verbatim}
+# 随机生成300天营业数据
+for day in business_days:
+
+    # 随机生成500~1500元营业额
+    sales = random.randint(500, 1500)
+
+    # 10%概率生成缺失值
+    if random.random() < 0.1:
+        sales = np.nan
+
+    data.append([
+        day.strftime("%Y-%m-%d"),
+        sales
+    ])
+
+# 删除缺失值
+def remove_nan(df):
+
+    print(df.isnull().sum())
+
+    # 删除所有缺失记录
+    df = df.dropna()
+
+    print(df.isnull().sum())
+
+    return df
+
+# 转换日期格式
+df["Date"] = pd.to_datetime(df["Date"])
+
+# 提取月份
+df["Month"] = df["Date"].dt.month
+
+# 按月份统计营业额
+month_sales = df.groupby("Month")["Sales"].sum()
+
+# 计算相邻月份营业额变化
+growth = month_sales.diff()
+
+# 找到最大涨幅月份
+max_month = growth.idxmax()
+
+max_growth = growth.max()
+
+plt.figure(figsize=(12,6))
+
+plt.plot(
+    pd.to_datetime(df["Date"]),
+    df["Sales"],
+    linewidth=1
+)
+
+plt.title("2025年每日营业额")
+
+plt.xlabel("日期")
+
+plt.ylabel("营业额（元）")
+
+plt.grid(True)
+
+plt.savefig("first.jpg", dpi=300)
+\end{verbatim}
+\subsection{实验中遇到的问题}
+\subsection{小结}
+本实验采用 Pandas、NumPy 和 Matplotlib 完成了营业数据的生成、清洗、统计分析及可视化展示，实现了折线图、柱状图和饼图等多种图表绘制。通过实验掌握了数据预处理、分组统计和数据可视化的方法，加深了对 Python 数据分析流程的理解，为后续数据处理与分析应用奠定了基础。
 \end{document}

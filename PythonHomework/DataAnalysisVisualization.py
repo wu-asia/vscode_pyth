@@ -57,16 +57,10 @@ def generate_sales_data(filename):
         if random.random() < 0.1:
             sales = np.nan
 
-        data.append([
-            day.strftime("%Y-%m-%d"),
-            sales
-        ])
+        data.append([day.strftime("%Y-%m-%d"), sales])
 
     # 写入CSV
-    with open(filename,
-              "w",
-              newline="",
-              encoding="utf-8-sig") as file:
+    with open(filename, "w", newline="", encoding="utf-8-sig") as file:
 
         writer = csv.writer(file)
 
@@ -132,11 +126,11 @@ def draw_daily_line(df):
     plt.xlabel("日期")
 
     plt.ylabel("营业额（元）")
-
+    #显示网格
     plt.grid(True)
 
     plt.xticks(rotation=45)
-
+    #自动调节元素的边距
     plt.tight_layout()
 
     plt.savefig("first.jpg", dpi=300)
@@ -148,10 +142,8 @@ def draw_daily_line(df):
 # 每月营业额统计
 def monthly_statistics(df):
     """
-    按月份统计营业额
-
-    返回：
-        month_sales：每月营业额Series
+    按月份统计营业额 返回：
+    month_sales：每月营业额Series
     """
 
     # 转换为日期类型
@@ -178,11 +170,7 @@ def draw_month_bar(month_sales):
 
     plt.figure(figsize=(10, 6))
 
-    plt.bar(
-        month_sales.index.astype(str),
-        month_sales.values,
-        color="orange"
-    )
+    plt.bar(month_sales.index.astype(str), month_sales.values, color="orange")
 
     plt.title("2025年每月营业额")
 
@@ -205,10 +193,8 @@ def draw_month_bar(month_sales):
 
 def save_max_growth_month(month_sales):
     """
-    找出相邻两个月最大涨幅
-
-    保存：
-        maxMonth.txt
+    找出相邻两个月最大涨幅 保存：
+    maxMonth.txt
     """
 
     # 相邻月份营业额差值
@@ -219,10 +205,7 @@ def save_max_growth_month(month_sales):
 
     max_growth = growth.max()
 
-    with open(
-            "maxMonth.txt",
-            "w",
-            encoding="utf-8") as file:
+    with open("maxMonth.txt", "w", encoding="utf-8") as file:
 
         file.write("2025年营业额最大涨幅月份\n")
         file.write("-------------------------\n")
