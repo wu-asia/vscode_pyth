@@ -3,7 +3,7 @@ from dataclasses import dataclass
 import cv2
 import numpy as np
 # 从同目录dataset模块导入四点排序、透视矫正函数
-from .dataset import order_points, warp_plate_from_points
+from dataset import order_points, warp_plate_from_points
 
 # 数据类：存储车牌定位整套结果，包含中间图、矫正车牌、四点坐标，供GUI可视化展示
 @dataclass
